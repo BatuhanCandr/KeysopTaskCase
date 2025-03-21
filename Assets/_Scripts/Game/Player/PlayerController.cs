@@ -1,27 +1,24 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
-
     [Header("Movement Settings")]
     [SerializeField] private FixedJoystick _fixedJoystick;
-    [SerializeField] private float m_Run;
-    [SerializeField] private float m_RunSpeed;
-    [SerializeField] private float deceleration = 10f; // Yavaşlama oranı
+    [SerializeField] private float run;
+    [SerializeField] private float runSpeed;
+    [SerializeField] private float deceleration = 10f;
 
-   
     [Header("Jump Settings")]
     [SerializeField] private float jumpForce = 10f;
 
-   
     [Header("Components")]
-  
-    [SerializeField] internal Rigidbody2D m_Rigidbody2D;
-    [SerializeField] public PlayerAnimation _playerAnimation;
-    
-    
-    //States
+    [SerializeField] internal Rigidbody2D rb;
+    [SerializeField] public PlayerAnimation playerAnimation;
+
+    // States
     internal bool isMoving;
     private bool isGrounded;
     private bool canDoubleJump;
@@ -35,14 +32,14 @@ public class PlayerController : MonoBehaviour
         }
 
         UpdateRunAnimation();
-        HandleJump();
     }
 
-    void UpdateRunAnimation()
+    // Updates run animation and movement behavior
+    private void UpdateRunAnimation()
     {
         if (!isGrounded)
         {
-            _playerAnimation.RunAnim(0);
+            playerAnimation.RunAnim(0);
             return;
         }
 
@@ -51,64 +48,62 @@ public class PlayerController : MonoBehaviour
         if (Mathf.Abs(horizontalAxis) > 0.1f)
         {
             isMoving = true;
-            m_Run = Mathf.Abs(horizontalAxis);
-            _playerAnimation.RunAnim(m_Run);
+            run = Mathf.Abs(horizontalAxis);
+            playerAnimation.RunAnim(run);
             GameManager.Instance.digController.SetFalseScythe();
-            if (horizontalAxis > 0)
-            {
-                transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-            }
-            else if (horizontalAxis < 0)
-            {
-                transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-            }
 
-            m_Rigidbody2D.linearVelocity = new Vector2(horizontalAxis * m_RunSpeed, m_Rigidbody2D.linearVelocity.y);
+            transform.localScale = new Vector3(horizontalAxis > 0 ? -1 : 1, transform.localScale.y, transform.localScale.z);
+            rb.linearVelocity = new Vector2(horizontalAxis * runSpeed, rb.linearVelocity.y);
         }
         else
         {
-            _playerAnimation.RunAnim(0);
+            playerAnimation.RunAnim(0);
             isMoving = false;
-            if (m_Rigidbody2D.linearVelocity.x != 0)
+            
+            if (rb.linearVelocity.x != 0)
             {
-                float decelerationSpeed = Mathf.MoveTowards(m_Rigidbody2D.linearVelocity.x, 0, deceleration * Time.deltaTime);
-                m_Rigidbody2D.linearVelocity = new Vector2(decelerationSpeed, m_Rigidbody2D.linearVelocity.y);
+                float decelerationSpeed = Mathf.MoveTowards(rb.linearVelocity.x, 0, deceleration * Time.deltaTime);
+                rb.linearVelocity = new Vector2(decelerationSpeed, rb.linearVelocity.y);
             }
         }
     }
 
-    void HandleJump()
+    // Handles player jump input
+    public void HandleJump()
     {
-        if (Input.GetButtonDown("Jump"))
+        if (isGrounded)
         {
-            if (isGrounded)
-            {
-                Jump();
-            }
-            else if (canDoubleJump)
-            {
-                Jump();
-                canDoubleJump = false;
-            }
+            Jump();
+        }
+        else if (canDoubleJump)
+        {
+            Jump();
+            canDoubleJump = false;
         }
     }
 
-    void Jump()
+    // Executes the jump action
+    private void Jump()
     {
         isGrounded = false;
-        _playerAnimation.GroundCheckAnim(isGrounded);
+        playerAnimation.GroundCheckAnim(isGrounded);
         GameManager.Instance.digController.SetFalseScythe();
-        _playerAnimation.JumpAnim();
-        m_Rigidbody2D.linearVelocity = new Vector2(m_Rigidbody2D.linearVelocity.x, jumpForce);
+        playerAnimation.JumpAnim();
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
     }
 
-    public void OnCollisionEnter2D(Collision2D other)
+    // Handles collision detection
+    private void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
-          _playerAnimation.GroundCheckAnim(isGrounded);
+            playerAnimation.GroundCheckAnim(isGrounded);
+        }
+
+        if (other.gameObject.CompareTag("Deathzone"))
+        {
+            GameManager.Instance.RestartGame();
         }
     }
-    
 }

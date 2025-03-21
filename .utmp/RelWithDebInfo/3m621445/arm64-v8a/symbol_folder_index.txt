@@ -1,0 +1,1 @@
+C:\Users\Batuhan\Documents\GitHub\KeysopTaskCase\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\3m621445\obj\arm64-v8a
