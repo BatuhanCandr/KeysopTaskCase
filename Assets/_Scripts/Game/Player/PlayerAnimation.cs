@@ -3,9 +3,7 @@ using UnityEngine;
 public class PlayerAnimation : MonoBehaviour
 {
     [SerializeField] private Animator animator;
-
-    private bool isDigging = false;
-
+    
     internal void JumpAnim()
     {
         animator.SetTrigger("Jump");

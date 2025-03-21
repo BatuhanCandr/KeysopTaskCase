@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     [Header("Player")]
     [SerializeField] internal PlayerController playerController;
     [SerializeField] internal DigController digController;
+    
     private void Awake()
     {
         Instance = this;

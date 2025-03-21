@@ -17,11 +17,12 @@ public class PlayerController : MonoBehaviour
    
     [Header("Components")]
   
-    [SerializeField] private Rigidbody2D m_Rigidbody2D;
+    [SerializeField] internal Rigidbody2D m_Rigidbody2D;
     [SerializeField] public PlayerAnimation _playerAnimation;
     
     
     //States
+    internal bool isMoving;
     private bool isGrounded;
     private bool canDoubleJump;
     internal bool isDigging;
@@ -49,6 +50,7 @@ public class PlayerController : MonoBehaviour
 
         if (Mathf.Abs(horizontalAxis) > 0.1f)
         {
+            isMoving = true;
             m_Run = Mathf.Abs(horizontalAxis);
             _playerAnimation.RunAnim(m_Run);
             GameManager.Instance.digController.SetFalseScythe();
@@ -66,6 +68,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             _playerAnimation.RunAnim(0);
+            isMoving = false;
             if (m_Rigidbody2D.linearVelocity.x != 0)
             {
                 float decelerationSpeed = Mathf.MoveTowards(m_Rigidbody2D.linearVelocity.x, 0, deceleration * Time.deltaTime);
@@ -92,6 +95,8 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
+        isGrounded = false;
+        _playerAnimation.GroundCheckAnim(isGrounded);
         GameManager.Instance.digController.SetFalseScythe();
         _playerAnimation.JumpAnim();
         m_Rigidbody2D.linearVelocity = new Vector2(m_Rigidbody2D.linearVelocity.x, jumpForce);
@@ -99,19 +104,11 @@ public class PlayerController : MonoBehaviour
 
     public void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.gameObject.tag == "Ground")
+        if (other.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
           _playerAnimation.GroundCheckAnim(isGrounded);
         }
     }
-
-    public void OnCollisionExit2D(Collision2D other)
-    {
-        if (other.gameObject.tag == "Ground")
-        {
-            isGrounded = false;
-            _playerAnimation.GroundCheckAnim(isGrounded);
-        }
-    }
+    
 }
